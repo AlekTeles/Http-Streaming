@@ -1,66 +1,38 @@
 import http  from 'node:http'
+import { randomUUID } from 'node:crypto'
+import { Database } from './database.js'
+import { json } from './middlewares/json.js'
 
-// -Criar usuários
-// -Listagem usuários
-// -Edição de usuários
-// -Remoção de usuários
+// UUID => Unique Universal ID
 
-// -HTTP
-// -Método HTTP
-// -URL 
+const database = new Database()
 
-// GET, POST, PUT, PATCH , DELETE
 
-// GET => Buscar uma recurso do back-end
-// POST => Criar uma recurso no back-end
-// PUT => Atualização um recurso no back-end
-// PATCH => Atualizar uma informação específica de um recurso no back-end
-// DELETE => Deletar um recurso do back-end
-
-// GET /users => Buscando usuários do back-end
-// POST /users => Criar um usuário no back-end
-
-// Stateful - Stateless
-
-// JSON - Javascript Object Notation
-
-// Cabeçalhos (Requisição/resposta) => Metadados
-
-const users = []
 
 const server = http.createServer(async (req, res) => {
     const { method, url} = req
 
-    const buffers = []
 
-    for await (const chunk of req) {
-        buffers.push(chunk)
-    }
-
-    try {
-        req.body = JSON.parse(Buffer.concat(buffers)
-        .toString())
-    } catch {
-        req.body = null
-    }
-
+    await json(req, res)
     
 
 
     if (method === 'GET'  && url === '/users') { 
-        return res
-        .setHeader('Content-type', 'application/json')
-        .end(JSON.stringify(users)) 
+        const users = database.select('users')
+
+        return res.end(JSON.stringify(users)) 
     }
 
     if (method === 'POST' && url === '/users') {
         const { name, email } = req.body
 
-        users.push({ 
-            id: 1,
+        const user = { 
+            id: randomUUID(),
             name,
             email,
-        }) 
+        }
+
+        database.insert('users', user)
          
         return res.writeHead(201).end() 
     }
